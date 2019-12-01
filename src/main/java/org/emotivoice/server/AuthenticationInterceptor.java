@@ -5,12 +5,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.emotivoice.server.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 @Component
-public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
+public class AuthenticationInterceptor implements HandlerInterceptor {
 
     private final AuthenticationService authenticationService;
 
@@ -27,6 +26,6 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
         User user = authenticationService.authenticate(token);
         request.setAttribute("user", user);
 
-        return super.preHandle(request, response, handler);
+        return true;
     }
 }

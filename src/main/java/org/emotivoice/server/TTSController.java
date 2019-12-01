@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +50,9 @@ public class TTSController {
         for (AnnotatedText annotatedText : annotatedTexts) {
             byte[] wavData = ttsModelService.executeModel(annotatedText);
             String filename = ttsModelService.getLastFilename();
-            new FileOutputStream(Paths.get(wavDir, user.getToken(), filename).toFile()).write(wavData);
+
+            Path path = Paths.get(wavDir, user.getToken(), filename);
+            new FileOutputStream(path.toFile()).write(wavData);
 
             wavFilenames.add(filename);
         }
