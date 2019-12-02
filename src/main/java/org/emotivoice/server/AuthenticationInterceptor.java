@@ -22,9 +22,11 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
 
-        String token = request.getHeader("X-Auth-Token");
-        User user = authenticationService.authenticate(token);
-        request.setAttribute("user", user);
+        if(!"OPTIONS".equals(request.getMethod()) && !"GET".equals(request.getMethod())) {
+            String token = request.getHeader("X-Auth-Token");
+            User user = authenticationService.authenticate(token);
+            request.setAttribute("user", user);
+        }
 
         return true;
     }

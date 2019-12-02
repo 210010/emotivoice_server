@@ -54,7 +54,7 @@ public class TTSController {
             Path path = Paths.get(wavDir, user.getToken(), filename);
             new FileOutputStream(path.toFile()).write(wavData);
 
-            wavFilenames.add(filename);
+            wavFilenames.add(Paths.get(user.getToken(), filename).toString());
         }
 
         return wavFilenames;
@@ -65,9 +65,10 @@ public class TTSController {
             HttpServletRequest req,
             @RequestParam("filename") String filename
     ) throws Exception {
-        User user = (User) req.getAttribute("user");
+//        User user = (User) req.getAttribute("user");
 
-        File file = Paths.get(wavDir, user.getToken(), filename).toFile();
+//        File file = Paths.get(wavDir, user.getToken(), filename).toFile();
+        File file = Paths.get(wavDir, filename).toFile();
         final InputStream is = new FileInputStream(file);
         return os -> {
             byte[] tmp = new byte[4096];

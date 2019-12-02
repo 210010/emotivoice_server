@@ -32,17 +32,19 @@ public class ServerApplication {
     private HandlerInterceptor handlerInterceptor;
 
     @Bean
-    public WebMvcConfigurer configurer() {
+    public WebMvcConfigurer configurer(@Value("${client_origin}") String clientOrigin) {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**").allowedOrigins("http://localhost:3000");
+                registry.addMapping("/**")
+                        .allowedOrigins(clientOrigin)
+                        .allowedHeaders("X-Auth-Token", "Content-Type");
             }
 
             @Override
             public void addInterceptors(InterceptorRegistry registry) {
                 registry.addInterceptor(handlerInterceptor)
-                        .addPathPatterns("/tts");
+                        .addPathPatterns("/tts", "/audio/**");
             }
         };
     }
