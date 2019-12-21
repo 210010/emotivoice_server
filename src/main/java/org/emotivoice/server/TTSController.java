@@ -1,15 +1,21 @@
 package org.emotivoice.server;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.SequenceInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.sound.sampled.AudioFileFormat.Type;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
 
 import org.emotivoice.server.service.AuthenticationService;
 import org.emotivoice.server.service.TTSModelService;
@@ -40,24 +46,37 @@ public class TTSController {
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public List<String> getGeneratedSpeech(
+    public String getGeneratedSpeech(
             HttpServletRequest req,
             @RequestBody AnnotatedText[] annotatedTexts
     ) throws Exception {
         User user = (User) req.getAttribute("user");
 
-        List<String> wavFilenames = new ArrayList<>();
+        /* get .wav binary data list */
+        List<AudioInputStream> audioInputStreams = new ArrayList<>();
+        long totalFrameLen = 0;
         for (AnnotatedText annotatedText : annotatedTexts) {
             byte[] wavData = ttsModelService.executeModel(annotatedText);
-            String filename = ttsModelService.getLastFilename();
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(
+                    new ByteArrayInputStream(wavData));
 
-            Path path = Paths.get(wavDir, user.getToken(), filename);
-            new FileOutputStream(path.toFile()).write(wavData);
-
-            wavFilenames.add(Paths.get(user.getToken(), filename).toString());
+            audioInputStreams.add(audioInputStream);
+            totalFrameLen += audioInputStream.getFrameLength();
         }
 
-        return wavFilenames;
+        /* join .wav binary data */
+        AudioFormat audioFormat = audioInputStreams.get(0).getFormat();
+        AudioInputStream joinedAudio = new AudioInputStream(
+                new SequenceInputStream(Collections.enumeration(audioInputStreams)),
+                audioFormat,
+                totalFrameLen
+        );
+
+        String filename = ttsModelService.getLastFilename();
+        Path path = Paths.get(wavDir, user.getToken(), filename);
+
+        AudioSystem.write(joinedAudio, Type.WAVE, path.toFile());
+        return (Paths.get(user.getToken(), filename)).toString();
     }
 
     @GetMapping(value = "/audio")
