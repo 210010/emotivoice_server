@@ -6,5 +6,7 @@ public interface TTSModelService {
 
     byte[] executeModel(AnnotatedText annotatedText) throws Exception;
 
-    String getLastFilename();
+    byte[][] executeModel(AnnotatedText[] annotatedTexts) throws Exception;
+
+    String getLastGeneratedID();
 }

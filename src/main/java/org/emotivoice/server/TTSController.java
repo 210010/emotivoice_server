@@ -8,6 +8,7 @@ import java.io.SequenceInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -53,26 +54,23 @@ public class TTSController {
         User user = (User) req.getAttribute("user");
 
         /* get .wav binary data list */
-        List<AudioInputStream> audioInputStreams = new ArrayList<>();
+        byte[][] wavDataArr = ttsModelService.executeModel(annotatedTexts);
+        AudioInputStream[] audioInputStreams = new AudioInputStream[wavDataArr.length];
         long totalFrameLen = 0;
-        for (AnnotatedText annotatedText : annotatedTexts) {
-            byte[] wavData = ttsModelService.executeModel(annotatedText);
-            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(
-                    new ByteArrayInputStream(wavData));
-
-            audioInputStreams.add(audioInputStream);
-            totalFrameLen += audioInputStream.getFrameLength();
+        for (int i = 0; i < wavDataArr.length; ++i) {
+            audioInputStreams[i] = AudioSystem.getAudioInputStream(new ByteArrayInputStream(wavDataArr[i]));
+            totalFrameLen += audioInputStreams[i].getFrameLength();
         }
 
         /* join .wav binary data */
-        AudioFormat audioFormat = audioInputStreams.get(0).getFormat();
+        AudioFormat audioFormat = audioInputStreams[0].getFormat();
         AudioInputStream joinedAudio = new AudioInputStream(
-                new SequenceInputStream(Collections.enumeration(audioInputStreams)),
+                new SequenceInputStream(Collections.enumeration(Arrays.asList(audioInputStreams))),
                 audioFormat,
                 totalFrameLen
         );
 
-        String filename = ttsModelService.getLastFilename();
+        String filename = ttsModelService.getLastGeneratedID() + ".wav";
         Path path = Paths.get(wavDir, user.getToken(), filename);
 
         AudioSystem.write(joinedAudio, Type.WAVE, path.toFile());
