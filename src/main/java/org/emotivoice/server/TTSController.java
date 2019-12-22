@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-@RestController(value = "/tts")
+@RestController
 public class TTSController {
 
     private TTSModelService ttsModelService;
@@ -46,7 +46,7 @@ public class TTSController {
         this.authenticationService = authenticationService;
     }
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value="/tts", consumes = MediaType.APPLICATION_JSON_VALUE)
     public String getGeneratedSpeech(
             HttpServletRequest req,
             @RequestBody AnnotatedText[] annotatedTexts
